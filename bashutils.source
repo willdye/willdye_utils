@@ -69,7 +69,7 @@ rename_if_existing() {
 # Percentage of free disk space.  Note that parsing 'df' output is not portable
 # (see http://mywiki.wooledge.org/BashFAQ/094), but should be OK in our case.
 disk_percent_full() {
-  target=${1:-"/usr/local/qa/"}
+  target=${1:-"$(pwd)"}
   reply=$(df -P "$target" | awk 'END{sub("%","",$5);print $5}')
   
   if [[ ( "$reply" == "" ) || ( "$reply" == " " ) ]]
@@ -85,7 +85,7 @@ disk_percent_full() {
 # Megs of free disk space left.  Note that parsing 'df' output is not portable
 # (see http://mywiki.wooledge.org/BashFAQ/094), but should be OK in our case.
 disk_megs_available() {
-  target=${1:-"/usr/local/qa/"}
+  target=${1:-"$(pwd)"}
   reply=$(df -P -B 1m "$target" | awk 'END{sub("%","",$4);print $4}')
   
   if [[ ( "$reply" == "" ) || ( "$reply" == " " ) ]]
