@@ -1,0 +1,14 @@
+#!/bin/bash
+# printf (with no trailing newline) the difference between two time stamps,
+# using the format "hh:mm:ss".  Specify the times in seconds, as a decimal
+# integer.  Usage example: elapsed=$(/sds2/qa/bin/elapsed_hours 0 $SECONDS)
+
+let begin_time=10#${1:-0}
+let ended_time=10#${2:-$SECONDS}
+let difference=$(( ended_time - begin_time ))
+
+let   hours=$(( ( $difference / 60 ) / 60 ))
+let minutes=$(( ( $difference / 60 ) % 60 ))
+let seconds=$(( ( $difference % 60 )      ))
+
+printf "%02d:%02d:%02d" $hours $minutes $seconds

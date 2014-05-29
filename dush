@@ -1,0 +1,24 @@
+#!/bin/bash
+# This is just a wrapper around "du" with commonly used options and some
+# formatting.  Note that this fails to handle rare(?) cases such as file
+# names which have embedded newlines and certain control characters.  If
+# you want to fix that, go ahead.  Personally I consider such file names
+# to be so hard to handle properly that I'd rather rename them.  Usage:
+#
+#     dush      # No parameters defaults to "." (the current directory).
+#     dush a*
+#     dush /path/to/z* *tbz ..
+
+separator=" ====== ----------"
+echo "$separator"
+
+du --block-size=1M --one-file-system --summarize --total "${@:-.}" |
+sort -n |
+awk '{printf " %6s",$1;$1="";print}' |
+sed 's%\( \+[0-9]\+ total$\)%'"$separator"'\n\1 megs%' |
+tail
+
+# This "df" isn't always desired, but it's also fairly harmless.  Note
+# that it measures the pwd, which isn't necessarily what's in the parms.
+df -PBG --block-size=1M . |
+awk 'END{printf " %6s full, megs left: %s\n",$5,$4}'

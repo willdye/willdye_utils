@@ -1,0 +1,36 @@
+#!/bin/bash
+# "Tar and feather" directories.  Similar to: "tar cjf X.tbz X  &&  rm -rf X".
+# This was written as an in-house wrapper script, but with a few changes it
+# might be usable as a general-purpose utility.
+
+umask 0002 # The resulting files should be writable by the group.
+
+for next in $@
+do
+  dir=${next%/} # Remove any trailing slashes (so don't pass in a symlink).
+  
+  if [[ ! -d "$dir" ]]
+      then
+      echo "Not a directory: $dir"
+      continue
+  fi
+  
+  if [[ $dir != ${dir/\/} ]]
+      then
+      echo "Not in pwd (use feathercd) : $dir"
+      continue
+  fi
+  
+  TMPDIR=$(mktemp -d "tmpfeather_${dir}.XXXXXX") || exit 1
+  tarball="$TMPDIR/${dir}.tbz"
+  echo -n "Creating \"$TMPDIR\" ... && "
+  
+  # Note that from here on we use '&&' to (effectively) bail out of failures.
+  tar cjf "$tarball" "$dir" &&
+  echo -n "Removing..." &&
+  mv --backup=numbered "$tarball" "." && # Note the dependence on pwd here.
+  mv -f "$dir" "$TMPDIR"/. &&
+  rm -rf "$TMPDIR"; # Deliberately leave TMPDIR in place if something failed.
+  
+  echo ""
+done

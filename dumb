@@ -1,0 +1,25 @@
+#!/bin/bash
+# "dumb" means "DU in Mega-Bytes". Or is it "mebbi"? Whatever. --willdye, 2011
+
+dir="${@:-$(pwd)}"
+[[ ! -d $dir ]] && echo "Error, not a directory: $dir" && exit 1
+
+temp=$(mktemp /tmp/dumb.XXXXXX) || exit 1
+trap "rm -f $temp" EXIT
+
+tail_size="20" # This is the number of lines of output in the final summary.
+[[ $LINES ]] && (( $tail_size > $LINES )) && tail_size=$(( $LINES - 1 ))
+
+# Note that if xargs can't fit all the args on a single line, then the summary
+# from "du" will be split into multiple pieces.  Hopefully that will be rare.
+find "$dir" -mindepth 1 -maxdepth 1 -print0 |
+sort --zero-terminated |
+xargs --null du -sc --block-size=1m |
+tee "$temp"
+
+echo "#================================"
+
+# The LC_ALL stuff tells awk to comma-separate large decimal numbers.
+sort -n "$temp" |
+LC_ALL=en_US.UTF-8 awk '{printf " %10'"'"'d ",$1;$1="";print}' |
+tail -$tail_size

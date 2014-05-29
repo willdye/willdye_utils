@@ -1,0 +1,27 @@
+#!/bin/bash
+# This takes normal valgrind output and makes a guess(!) as to which lines are
+# most likely to be of interest.  This is strictly a guess, so do NOT attempt
+# to use the output from this script as a substitute for unfiltered valgrind
+# reports.  It gives you a quick summary for first-pass analysis, that's all.
+
+sed \
+-e 's/0x[0123456789ABCDEF]\+/0x/' \
+-e 's/==[0123456789: -\.]\+== //' \
+-e 's/\*\*[0123456789]\+\*\*/**/' \
+-e 's% (in /tmp/.*)%%' \
+-e 's% (in /usr/local/.*)%%' \
+-e 's%   by 0x: tcl_exec_command(void\*, Tcl_Interp\*, int, Tcl_Obj\*\*)%%' \
+-e 's%   by 0x: TclEvalObjvInternal (tclBasic.c:[0123456789]\+)%%' \
+-e 's%   by 0x: Tcl_EvalObjv (tclBasic.c:[0123456789]\+)%%' \
+-e 's%   by 0x: unknown_hit(void\*, Tcl_Interp\*, int, Tcl_Obj\*\*)%%' \
+-e 's%   by 0x: TclEvalObjvInternal (tclBasic.c:[0123456789]\+)%%' \
+-e 's%   by 0x: TclEvalObjvInternal (tclBasic.c:[0123456789]\+)%%' \
+-e 's%   by 0x: Tcl_EvalEx (tclBasic.c:[0123456789]\+)%%' \
+-e 's%   by 0x: Tcl_Eval (tclBasic.c:[0123456789]\+)%%' \
+-e '/^HEAP SUMMARY.*/,/^ERROR SUMMARY.*/d' \
+-e '/^Memcheck, a memory error detector/,/^Parent PID: /d' \
+-e 's%\*\* "Job", "\(.\+\)"%\1\n\n%' \
+-e '/0x:/s/ \?\([{(<,>)}]\) \?/\1/g' \
+-e 's/ at 0x: /at /' \
+-e 's/ 0x: / /' \
+| uniq

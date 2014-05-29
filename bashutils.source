@@ -1,0 +1,102 @@
+###############################################################################
+# Force the user to enter the letter 'y' or 'n' to continue.
+# Note the prompts and responses can be overridden with parms.
+yesno() {
+  while read -p${1:-"Are you sure (y/n)? "}
+  do [[ $REPLY = ${2:-[Yy]} ]] && return 0
+     [[ $REPLY = ${3:-[Nn]} ]] && return 1
+     echo ${4:-"Reply with the letter 'y' or 'n'."}
+  done
+}
+
+###############################################################################
+# Just like yesno(), but acts immediately on the first key pressed,
+# instead of waiting for the user to also hit the "enter" key.
+yesno1key() {
+  while read -p "${1:-'Are you sure (y/n)? '}" -n 1
+  do [[ $REPLY = ${2:-[Yy]} ]] && echo && return 0
+     [[ $REPLY = ${3:-[Nn]} ]] && echo && return 1
+     echo -e "\n"${4:-"Reply with the letter 'y' or 'n'."}
+  done
+}
+
+###############################################################################
+# Example:  dangling $myfile && echo "$myfile is a dangling symlink!"
+dangling() {
+  [[ -L $1 ]] || return 2 # It's not a symlink (it might not even exist).
+  [[ -e $1 ]] && return 1 # It's a symlink, but it's not dangling.
+  return 0 # The file is a dangling symlink.
+}
+
+###############################################################################
+# Print a message and exit with either the given status or that of the most
+# recent command.  This replaces code like: "cmd || { echo ERROR; exit 1; }"
+# Example: exit with a default msg and the code returned by cmd:  cmd || die
+# Example: custom msg and the code returned by cmd:  cmd || die "Uff da"
+# Example: exit with custom everything:  cmd || die "Uff da" 127
+die() {
+  local die_original_code="$?"
+  local die_message="${1:-}"
+  local die_exit_code=${2:-"$die_original_code"}
+  echo "Error!" "$die_message" "( Code: $die_exit_code )" >&2
+  exit "$die_exit_code"
+}
+
+###############################################################################
+# Run parms $2+ as a cmd, but kill with SIGALRM if it runs over $1 seconds.
+# This usually works, but see the greycat FAQ for details on better ways.
+# Ex: doalarm $((30*60)) killthis_if_it_runs_longer_than_30_mins p1 p2
+doalarm() {
+  perl -e 'alarm shift; exec @ARGV' "$@"
+}
+
+###############################################################################
+# This is useful if you're about to create a file, but if the filename already
+# exists you want to rename the old file & issue a warning.  Note the chmod.
+rename_if_existing() {
+  if [[ -f $1 ]]
+  then
+    cp --force --backup=numbered "$1" "$1"
+    echo "WARNING: $(basename $1) already exists, so it was renamed."
+    ls -lo ${1}*
+    echo
+  fi
+  touch "$1"
+  chmod a+rwX "$1"
+}
+
+###############################################################################
+# Percentage of free disk space.  Note that parsing 'df' output is not portable
+# (see http://mywiki.wooledge.org/BashFAQ/094), but should be OK in our case.
+disk_percent_full() {
+  target=${1:-"/usr/local/qa/"}
+  reply=$(df -P "$target" | awk 'END{sub("%","",$5);print $5}')
+  
+  if [[ ( "$reply" == "" ) || ( "$reply" == " " ) ]]
+  then
+    echo "Error parsing 'df' output for $target ($0)." 1>&2
+    reply="0"
+  fi
+  
+  echo "$reply"
+}
+
+###############################################################################
+# Megs of free disk space left.  Note that parsing 'df' output is not portable
+# (see http://mywiki.wooledge.org/BashFAQ/094), but should be OK in our case.
+disk_megs_available() {
+  target=${1:-"/usr/local/qa/"}
+  reply=$(df -P -B 1m "$target" | awk 'END{sub("%","",$4);print $4}')
+  
+  if [[ ( "$reply" == "" ) || ( "$reply" == " " ) ]]
+  then
+    echo "Error parsing 'df' output for $target ($0)." 1>&2
+    reply="0"
+  fi
+  
+  echo "$reply"
+}
+
+###############################################################################
+#
+

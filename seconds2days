@@ -1,0 +1,5 @@
+#!/bin/bash
+# Convert integer seconds to "Ddays,HH:MM:SS", omitting leading empty values
+# (ex: "8:05" instead of "0days,00:08:05"), and changing "1days" to "1day".
+printf "%ddays,%02d:%02d:%02d" $(((($1/60)/60)/24)) $(((($1/60)/60)%24)) \
+  $((($1/60)%60)) $(($1%60))|sed 's/^0days,\(00:\)*//;s/^0//;s/^1days/1day/'

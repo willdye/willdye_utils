@@ -1,0 +1,31 @@
+#!/bin/bash
+# Convert seconds to days + hours + minutes + seconds.  Examples:
+#     $ SECONDS=0 && long_running_program && this_script $SECONDS
+#     274637 seconds ( 3 days, 4 hours, 17 minutes, 17 seconds )
+#     $ seconds $((90*60+1))
+#     5401 seconds ( 1 hour, 30 minutes, 1 second )
+#     $ seconds -6*2 # Note the negative.
+#     12 seconds
+
+# Things like floats, 2.8e+14, NaN's, odd bases, and such currently thow an
+# error here, but you can pass "6*2" and get "12" (at least in Bash 2.05).
+declare -i x=10#${1}
+
+# Negatives are currently not supported, so fall back to the absolute value.
+(( x < 0 )) && x=$(( -$x ))
+
+let dd=$((((x/60)/60)/24)) # days
+let hh=$((((x/60)/60)%24)) # hours
+let mm=$(((x/60)%60)) # minutes
+let ss=$((x%60)) # seconds
+
+# Yeah, this could be done more elegantly, but why bother?
+echo "$x seconds ( $dd days, $hh hours, $mm minutes, $ss seconds )" |
+sed 's/ ( 0 days, 0 hours, 0 minutes,.*//;
+     s/ 0 days, 0 hours,//;
+     s/ 0 days,//;
+     s/ 1 days/ 1 day/;
+     s/ 1 hours/ 1 hour/;
+     s/ 1 minutes/ 1 minute/;
+     s/ 1 seconds/ 1 second/;
+     s/^1 seconds/1 second/'
