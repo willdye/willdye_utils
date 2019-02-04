@@ -1,19 +1,18 @@
 #!/bin/bash
 # Bash version of the (in)famous "FizzBuzz" test.
 
-# Concise version (75 chars).  Minimizes the # of tests & var assignments.
-for i in {1..100};do((i%3))&&x=||x=Fizz;((i%5))||x+=Buzz;echo ${x:-$i};done |
-column # This column wrapping isn't required by the test; it's just cosmetic.
+# Fizzbuzz in 75 characters of Bash.
+for i in {1..100};do((i%3))&&x=||x=Fizz;((i%5))||x+=Buzz;echo ${x:-$i};done
 
 echo ==========================
 
-# Concise version, expanded into multiple lines.
+# This is the same as the concise version above, but expanded for readability.
 for i in {1..100}
 do  (( i % 3 )) && x= || x=Fizz
     (( i % 5 )) || x+=Buzz
     echo ${x:-$i}
 done |
-column
+column # The pipe to "column" isn't required by the test; it's just cosmetic.
 
 echo ==========================
 
